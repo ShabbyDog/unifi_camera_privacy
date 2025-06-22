@@ -356,7 +356,7 @@ class PrivacyButtonController:
         print(f"{Fore.CYAN}Waiting for system startup...")
         await asyncio.sleep(5)
         
-        # Connect to UniFi Protect (only if manager not already set by parent)
+                # Connect to UniFi Protect (only if manager not already set by parent)
         if not self.manager:
             if not await self.connect_unifi():
                 return False
