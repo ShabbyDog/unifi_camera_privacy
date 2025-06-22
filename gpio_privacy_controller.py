@@ -94,7 +94,7 @@ class PrivacyButtonController:
         
         # Control flags
         self.running = True
-        self.state_file = Path("/opt/unifi-camera-privacy/privacy_state.json")
+        self.state_file = Path(f"/opt/unifi-camera-privacy/privacy_state_{camera_name}.json")
         
         print(f"{Fore.CYAN}Privacy Button Controller initialized:")
         print(f"  Camera: {camera_name}")
@@ -467,7 +467,7 @@ class MultiCameraPrivacyController:
                 # Set custom state file path if specified
                 if 'state_file_path' in self.global_settings:
                     base_path = Path(self.global_settings['state_file_path'])
-                    controller.state_file = base_path.parent / f"{camera_config['name']}_privacy_state.json"
+                    controller.state_file = base_path.parent / f"privacy_state_{camera_config['name']}.json"
                 
                 self.controllers.append(controller)
                 print(f"{Fore.GREEN}✓ Added controller for '{camera_config['name']}' on GPIO {camera_config['gpio_pin']}")
