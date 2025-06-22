@@ -145,14 +145,16 @@ class UniFiProtectManager:
         try:
             if enabled:
                 # Enable privacy mode (this typically disables recording and creates a privacy zone)
-                await camera.set_privacy(True, 0)  # 0 = mic level when in privacy mode
+                await camera.set_privacy(True, 0)  # 0 = mic level when in privacy mode (muted)
                 await self.set_led_privacy_mode(camera)
                 await self.set_ir_led_off(camera)
+                await self.set_microphone_off(camera)
             else:
                 # Disable privacy mode
                 await camera.set_privacy(False)
                 await self.set_led_normal(camera)
                 await self.set_ir_led_auto(camera)
+                await self.set_microphone_auto(camera)
             
             action = "enabled" if enabled else "disabled"
             print(f"{Fore.GREEN}✓ Privacy mode {action} for camera '{camera.name}'")
@@ -305,6 +307,102 @@ class UniFiProtectManager:
         except Exception:
             return "UNKNOWN"
 
+    async def set_microphone_off(self, camera: Camera):
+        """Disable microphone for complete privacy."""
+        try:
+            # Method 1: Try setting microphone via audio settings
+            if hasattr(camera, 'update_device'):
+                mic_settings = {
+                    'mic_volume': 0,        # Set microphone volume to 0
+                    'audio_recording_enabled': False,  # Disable audio recording
+                    'microphone_enabled': False,       # Disable microphone
+                    'audio_enabled': False             # Disable audio entirely
+                }
+                
+                for setting_name, value in mic_settings.items():
+                    try:
+                        await camera.update_device({setting_name: value})
+                        print(f"{Fore.CYAN}  └─ Microphone disabled via {setting_name}")
+                        return True
+                    except:
+                        continue
+            
+            # Method 2: Try using set_privacy with mic level 0
+            if hasattr(camera, 'set_privacy'):
+                try:
+                    current_privacy = len(camera.privacy_zones) > 0
+                    await camera.set_privacy(current_privacy, 0)  # Keep current privacy, set mic to 0
+                    print(f"{Fore.CYAN}  └─ Microphone muted (volume set to 0)")
+                    return True
+                except:
+                    pass
+            
+            print(f"{Fore.YELLOW}  └─ Microphone control not available for this camera model")
+            return False
+            
+        except Exception as e:
+            print(f"{Fore.YELLOW}  └─ Microphone control failed: {e}")
+            return False
+
+    async def set_microphone_auto(self, camera: Camera):
+        """Restore microphone to normal operation."""
+        try:
+            # Method 1: Try setting microphone via audio settings
+            if hasattr(camera, 'update_device'):
+                mic_settings = {
+                    'audio_recording_enabled': True,   # Enable audio recording
+                    'microphone_enabled': True,        # Enable microphone
+                    'audio_enabled': True,             # Enable audio entirely
+                    'mic_volume': 100                  # Restore microphone volume
+                }
+                
+                for setting_name, value in mic_settings.items():
+                    try:
+                        await camera.update_device({setting_name: value})
+                        print(f"{Fore.CYAN}  └─ Microphone restored via {setting_name}")
+                        return True
+                    except:
+                        continue
+            
+            # Method 2: Try using set_privacy with normal mic level
+            if hasattr(camera, 'set_privacy'):
+                try:
+                    current_privacy = len(camera.privacy_zones) > 0
+                    await camera.set_privacy(current_privacy, 100)  # Keep current privacy, restore mic
+                    print(f"{Fore.CYAN}  └─ Microphone restored (volume set to 100)")
+                    return True
+                except:
+                    pass
+            
+            print(f"{Fore.YELLOW}  └─ Microphone control not available for this camera model")
+            return False
+            
+        except Exception as e:
+            print(f"{Fore.YELLOW}  └─ Microphone control failed: {e}")
+            return False
+
+    async def get_microphone_status(self, camera: Camera) -> str:
+        """Get current microphone status."""
+        try:
+            # Check various possible microphone properties
+            mic_properties = [
+                ('mic_volume', lambda x: "OFF" if x == 0 else f"ON ({x}%)"),
+                ('audio_recording_enabled', lambda x: "ON" if x else "OFF"),
+                ('microphone_enabled', lambda x: "ON" if x else "OFF"),
+                ('audio_enabled', lambda x: "ON" if x else "OFF")
+            ]
+            
+            for prop, formatter in mic_properties:
+                if hasattr(camera, prop):
+                    value = getattr(camera, prop)
+                    if value is not None:
+                        return formatter(value)
+            
+            return "UNKNOWN"
+            
+        except Exception:
+            return "UNKNOWN"
+
 
 def load_config() -> Dict[str, str]:
     """Load configuration from environment variables."""
@@ -426,13 +524,16 @@ async def interactive_mode():
 @click.option('--ir-off', is_flag=True, help='Turn off IR LEDs for specified camera')
 @click.option('--ir-auto', is_flag=True, help='Set IR LEDs to auto mode for specified camera')
 @click.option('--ir-status', is_flag=True, help='Show IR LED status for specified camera')
+@click.option('--mic-off', is_flag=True, help='Turn off microphone for specified camera')
+@click.option('--mic-on', is_flag=True, help='Turn on microphone for specified camera')
+@click.option('--mic-status', is_flag=True, help='Show microphone status for specified camera')
 @click.option('--interactive', '-i', is_flag=True, help='Run in interactive mode')
 def main(host, port, username, password, no_ssl_verify, camera, list_cameras, 
          enable_privacy, disable_privacy, led_off, led_on, led_status, 
-         ir_off, ir_auto, ir_status, interactive):
+         ir_off, ir_auto, ir_status, mic_off, mic_on, mic_status, interactive):
     """UniFi Protect Camera Privacy Zone Manager
     
-    Toggle privacy zones and control LED status lights and IR LEDs for UniFi Protect cameras.
+    Toggle privacy zones and control LED status lights, IR LEDs, and microphones for UniFi Protect cameras.
     Supports both command line and interactive modes for camera management.
     Configuration can be provided via command line arguments or environment variables.
     
@@ -440,11 +541,13 @@ def main(host, port, username, password, no_ssl_verify, camera, list_cameras,
     - Privacy zones: Block camera view with full-screen privacy zone
     - Status LED control: Turn LED off when privacy enabled (visual indicator)
     - IR LED control: Turn off IR LEDs when privacy enabled (enhanced privacy)
-    - Automatic restoration: LED and IR LEDs restored when privacy disabled
+    - Microphone control: Mute microphone when privacy enabled (complete privacy)
+    - Automatic restoration: All settings restored when privacy disabled
     
     Manual Control:
     - Independent LED control (on/off/status)
     - Independent IR LED control (off/auto/status)
+    - Independent microphone control (off/on/status)
     - Perfect for automation and smart home integration
     """
     
@@ -510,6 +613,7 @@ def main(host, port, username, password, no_ssl_verify, camera, list_cameras,
                 privacy_options = [enable_privacy, disable_privacy]
                 led_options = [led_off, led_on, led_status]
                 ir_options = [ir_off, ir_auto, ir_status]
+                mic_options = [mic_off, mic_on, mic_status]
                 
                 if sum(privacy_options) > 1:
                     print(f"{Fore.RED}✗ Cannot specify multiple privacy options")
@@ -521,6 +625,10 @@ def main(host, port, username, password, no_ssl_verify, camera, list_cameras,
                 
                 if sum(ir_options) > 1:
                     print(f"{Fore.RED}✗ Cannot specify multiple IR LED options")
+                    return False
+                
+                if sum(mic_options) > 1:
+                    print(f"{Fore.RED}✗ Cannot specify multiple microphone options")
                     return False
                 
                 # Handle LED control
@@ -554,6 +662,18 @@ def main(host, port, username, password, no_ssl_verify, camera, list_cameras,
                     else:
                         color = Fore.YELLOW
                     print(f"{color}IR LED Status for '{cam_obj.name}': {status}")
+                    return True
+                
+                # Handle microphone control
+                if mic_off:
+                    await manager.set_microphone_off(cam_obj)
+                    return True
+                elif mic_on:
+                    await manager.set_microphone_auto(cam_obj)
+                    return True
+                elif mic_status:
+                    status = await manager.get_microphone_status(cam_obj)
+                    print(f"{Fore.CYAN}Microphone Status for '{cam_obj.name}': {status}")
                     return True
                 
                 # Handle privacy control

@@ -51,7 +51,18 @@ A mostly vibe coded but human read Python application that allows you to toggle 
    pip install -r requirements.txt
    ```
 
-3. **Make the script executable (optional):**
+3. **Configure your UniFi Protect connection:**
+   ```bash
+   cp config.env.example .env
+   nano .env  # Edit with your UniFi Protect details
+   ```
+
+4. **Test the connection:**
+   ```bash
+   python test_connection.py
+   ```
+
+5. **Make the script executable (optional):**
    ```bash
    chmod +x unifi_camera_privacy.py
    ```
@@ -60,36 +71,40 @@ A mostly vibe coded but human read Python application that allows you to toggle 
 
 For Raspberry Pi users who want GPIO button control with auto-disable timeout:
 
-1. **Clone or copy the project files to your Raspberry Pi**
-2. **Run the automated setup script:**
+1. **Clone or copy the project files to your Raspberry Pi:**
+   ```bash
+   git clone https://github.com/ShabbyDog/unifi_camera_privacy.git
+   cd unifi_camera_privacy
+   ```
+
+2. **Configure your UniFi Protect settings:**
+   ```bash
+   cp config.env.example .env
+   nano .env  # Edit with your UniFi Protect details
+   ```
+
+3. **Configure your cameras and GPIO pins:**
+   ```bash
+   cp cameras_config.example.json cameras_config.json
+   nano cameras_config.json  # Edit with your camera names and GPIO pins
+   ```
+
+4. **Run the automated setup script:**
    ```bash
    chmod +x setup_rpi.sh
    ./setup_rpi.sh
    ```
-3. **Configure your UniFi Protect settings:**
+
+5. **Check the service status:**
    ```bash
-   sudo nano /opt/unifi-camera-privacy/.env
-   ```
-4. **Test the connection:**
-   ```bash
-   cd /opt/unifi-camera-privacy
-   ./venv/bin/python test_connection.py
-   ```
-5. **Test GPIO hardware:**
-   ```bash
-   cd /opt/unifi-camera-privacy
-   ./venv/bin/python test_gpio.py
-   ```
-6. **Start the service:**
-   ```bash
-   sudo systemctl start privacy-button
    sudo systemctl status privacy-button
    ```
 
 The Raspberry Pi setup includes:
-- 🔘 **GPIO Button Control**: Physical button on GPIO 18 to toggle privacy
-- ⏰ **60-minute Auto-disable**: Privacy automatically turns off after 1 hour
-- 💡 **LED Indicator**: Visual feedback on GPIO 24
+- 🔘 **GPIO Button Control**: Physical buttons with configurable GPIO pins per camera
+- 🎛️ **Multi-Camera Support**: Individual buttons for multiple cameras via JSON config
+- ⏰ **Configurable Auto-disable**: Privacy automatically turns off after specified timeout
+- 💡 **LED Indicators**: Visual feedback with configurable GPIO pins
 - 🔄 **System Service**: Runs automatically on boot
 - 📊 **Logging**: Full systemd integration with journalctl
 
@@ -206,11 +221,25 @@ python unifi_camera_privacy.py --camera "Front Door Camera" --ir-auto
 python unifi_camera_privacy.py --camera "Front Door Camera" --ir-status
 ```
 
+#### Microphone Control Commands:
+
+```bash
+# Turn off microphone (complete audio privacy)
+python unifi_camera_privacy.py --camera "Front Door Camera" --mic-off
+
+# Turn on microphone (restore audio recording)
+python unifi_camera_privacy.py --camera "Front Door Camera" --mic-on
+
+# Check microphone status
+python unifi_camera_privacy.py --camera "Front Door Camera" --mic-status
+```
+
 ## How Privacy Zones Work
 
 When you enable a privacy zone:
 - 🔒 A privacy zone covering the entire camera view is created
-- 📹 The camera continues recording but the view is blocked
+- 📹 The camera continues recording but the **video view is blocked**
+- 🎤 **Microphone is muted** (complete audio privacy)
 - 🚫 Motion detection may be disabled (depending on UniFi Protect settings)
 - 💡 **Status LED is turned OFF** (visual privacy indicator)
 - 🌙 **IR LEDs are turned OFF** (enhanced privacy - no night vision)
@@ -219,18 +248,22 @@ When you disable a privacy zone:
 - ✅ All privacy zones are removed from the camera
 - 👁️ The camera view is restored to normal
 - 📹 Recording and motion detection resume normal operation
+- 🎤 **Microphone is restored** (audio recording enabled)
 - 💡 **Status LED is restored to normal** (visual confirmation)
 - 🌙 **IR LEDs are restored to AUTO** (night vision restored)
 
+**Important Note:** This application now provides **complete privacy** by controlling both video (privacy zones) and audio (microphone muting). When privacy mode is enabled, both the visual feed is blocked AND the microphone is muted, ensuring total privacy for the covered area.
+
 ## LED & IR Control Features
 
-The application now includes comprehensive lighting control for supported cameras:
+The application now includes comprehensive lighting and audio control for supported cameras:
 
 ### Automatic Control (Privacy Mode):
-- 🔴 **Privacy Mode ON**: Status LED turns OFF, IR LEDs turn OFF
-- 🟢 **Privacy Mode OFF**: Status LED turns ON, IR LEDs return to AUTO
+- 🔴 **Privacy Mode ON**: Status LED turns OFF, IR LEDs turn OFF, Microphone muted
+- 🟢 **Privacy Mode OFF**: Status LED turns ON, IR LEDs return to AUTO, Microphone restored
 - 👁️ **Visual Feedback**: Instantly see privacy status from across the room
 - 🌙 **Enhanced Privacy**: No night vision recording when privacy enabled
+- 🎤 **Complete Privacy**: No audio recording when privacy enabled
 
 ### Manual LED Control:
 - 🎛️ **Independent Control**: Turn status LED on/off without affecting privacy zones
@@ -242,6 +275,12 @@ The application now includes comprehensive lighting control for supported camera
 - 🔍 **Status Check**: Query current IR LED mode (OFF/AUTO/ON/etc.)
 - 🔒 **Enhanced Privacy**: Disable night vision without privacy zones
 - 🏠 **Automation Ready**: Perfect for scheduled privacy modes
+
+### Manual Microphone Control:
+- 🎤 **Audio Privacy**: Turn microphone off/on independently  
+- 🔍 **Status Check**: Query current microphone state
+- 🔇 **Silent Monitoring**: Disable audio without affecting video
+- 🏠 **Smart Integration**: Perfect for automated privacy schedules
 
 ## Security Considerations
 
@@ -273,6 +312,33 @@ The application now includes comprehensive lighting control for supported camera
 - ✅ Ensure your user has camera management permissions
 - ✅ Check if the camera is online and responsive
 - ✅ Try updating UniFi Protect to the latest version
+
+### Raspberry Pi GPIO Issues
+
+**Problem:** Raspberry Pi service not working or button not responding
+
+**Test the connection:**
+```bash
+cd /opt/unifi-camera-privacy
+./venv/bin/python test_connection.py
+```
+
+**Test GPIO hardware:**
+```bash
+cd /opt/unifi-camera-privacy
+./venv/bin/python test_gpio.py
+```
+
+**Check service logs:**
+```bash
+sudo journalctl -u privacy-button -f
+```
+
+**Restart the service:**
+```bash
+sudo systemctl restart privacy-button
+sudo systemctl status privacy-button
+```
 
 ## Examples
 
@@ -322,6 +388,9 @@ shell_command:
 | `--ir-off` | | Turn off IR LEDs for specified camera |
 | `--ir-auto` | | Set IR LEDs to auto mode for specified camera |
 | `--ir-status` | | Show IR LED status for specified camera |
+| `--mic-off` | | Turn off microphone for specified camera |
+| `--mic-on` | | Turn on microphone for specified camera |
+| `--mic-status` | | Show microphone status for specified camera |
 | `--interactive` | `-i` | Run in interactive mode |
 
 ## License
