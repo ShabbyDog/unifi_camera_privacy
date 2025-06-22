@@ -37,8 +37,7 @@ cameras_config.json
 !cameras_config.example.json
 
 # State files (runtime generated)
-*_privacy_state.json
-privacy_state.json
+privacy_state_*.json
 
 # IDE files
 .vscode/

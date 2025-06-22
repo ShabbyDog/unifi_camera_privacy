@@ -24,7 +24,7 @@ The system uses a JSON configuration file (`cameras_config.json`) to define whic
     "debounce_time": 0.3,
     "polling_interval": 0.1,
     "startup_delay": 5,
-    "state_file_path": "/opt/unifi-camera-privacy/privacy_state.json"
+    "state_file_path": "/opt/unifi-camera-privacy/privacy_state_example.json"
   }
 }
 ```
@@ -48,7 +48,7 @@ The system uses a JSON configuration file (`cameras_config.json`) to define whic
 - **`debounce_time`**: Button debounce time in seconds (default: 0.3)
 - **`polling_interval`**: How often to check buttons/timeouts in seconds (default: 0.1)  
 - **`startup_delay`**: Delay before starting in seconds (default: 5)
-- **`state_file_path`**: Base path for state files (default: privacy_state.json)
+- **`state_file_path`**: Base path for state files (default: privacy_state_{camera_name}.json)
 
 ## GPIO Pin Guidelines
 
@@ -157,9 +157,10 @@ The system uses a JSON configuration file (`cameras_config.json`) to define whic
 ## State Files
 
 Each camera gets its own state file to track privacy status:
-- `{camera_name}_privacy_state.json` 
+- `privacy_state_{camera_name}.json` 
 - Allows state persistence across reboots
 - Located in the configured state file directory
+- Files are grouped together alphabetically for easier management
 
 ## Troubleshooting
 
