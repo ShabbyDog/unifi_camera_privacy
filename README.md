@@ -124,11 +124,16 @@ The Raspberry Pi setup includes:
    UFP_PORT=443
    UFP_USERNAME=your_username
    UFP_PASSWORD=your_password
-   UFP_SSL_VERIFY=True
+   UFP_SSL_VERIFY=False
    
    # Optional: Timezone (defaults to system timezone)
    TZ=America/New_York
    ```
+
+   **SSL Verification Notes:**
+   - `UFP_SSL_VERIFY=False` is recommended for most installations (works with self-signed certificates)
+   - Set to `True` only if you have installed a proper signed certificate on your UniFi Protect host
+   - Most home/small business UniFi installations use self-signed certificates
 
 ### Option 2: Command Line Arguments
 
