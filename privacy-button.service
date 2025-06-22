@@ -1,0 +1,34 @@
+[Unit]
+Description=UniFi Protect Privacy Button Controller
+After=network-online.target
+Wants=network-online.target
+Requires=network-online.target
+
+[Service]
+Type=simple
+User=cameramanagement
+Group=gpio
+WorkingDirectory=/opt/unifi-camera-privacy
+ExecStartPre=/bin/sleep 15
+ExecStart=/opt/unifi-camera-privacy/venv/bin/python /opt/unifi-camera-privacy/gpio_privacy_controller.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/opt/unifi-camera-privacy
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME=/opt/unifi-camera-privacy
+Environment=XDG_CONFIG_HOME=/opt/unifi-camera-privacy/.config
+EnvironmentFile=-/opt/unifi-camera-privacy/.env
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/unifi-camera-privacy
+
+[Install]
+WantedBy=multi-user.target 

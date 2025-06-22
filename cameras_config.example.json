@@ -1,0 +1,75 @@
+{
+  "_comment": "Configuration file for UniFi Protect Camera Privacy Button Controller",
+  "_description": "Define multiple cameras with individual GPIO pins and settings",
+  
+  "cameras": [
+    {
+      "name": "Bedroom",
+      "description": "Bedroom camera privacy button",
+      "gpio_pin": 18,
+      "led_pin": 24,
+      "timeout_minutes": 60,
+      "enabled": true,
+      "_notes": "Main camera - GPIO 18 for button, GPIO 24 for LED, 1 hour timeout"
+    },
+    {
+      "name": "Living Room", 
+      "description": "Living room camera privacy button",
+      "gpio_pin": 19,
+      "led_pin": 25,
+      "timeout_minutes": 30,
+      "enabled": true,
+      "_notes": "Living room - GPIO 19 for button, GPIO 25 for LED, 30 min timeout"
+    },
+    {
+      "name": "Kitchen",
+      "description": "Kitchen camera privacy button",
+      "gpio_pin": 20,
+      "led_pin": 26,
+      "timeout_minutes": 45,
+      "enabled": false,
+      "_notes": "Kitchen camera - currently disabled"
+    },
+    {
+      "name": "Hallway",
+      "description": "Hallway camera - button only (no LED)",
+      "gpio_pin": 21,
+      "led_pin": null,
+      "timeout_minutes": 90,
+      "enabled": true,
+      "_notes": "No LED indicator, longer timeout for hallway"
+    }
+  ],
+  
+  "global_settings": {
+    "_comment": "Global settings that apply to all cameras",
+    
+    "debounce_time": 0.3,
+    "_debounce_note": "Button debounce time in seconds (prevents multiple triggers)",
+    
+    "polling_interval": 0.1,  
+    "_polling_note": "How often to check button states and timeouts (seconds)",
+    
+    "startup_delay": 5,
+    "_startup_note": "Delay before starting (allows system to fully boot)",
+    
+    "state_file_path": "/opt/unifi-camera-privacy/privacy_state.json",
+    "_state_note": "Base path for state files (one per camera will be created)"
+  },
+  
+  "_field_descriptions": {
+    "name": "Exact camera name as shown in UniFi Protect",
+    "description": "Human-readable description for logs",
+    "gpio_pin": "GPIO pin number (BCM numbering) for the button",
+    "led_pin": "GPIO pin number (BCM numbering) for status LED (null to disable)",
+    "timeout_minutes": "Minutes before privacy automatically disables (0 = never)",
+    "enabled": "Whether this camera controller should be active"
+  },
+  
+  "_gpio_notes": {
+    "pin_numbering": "Uses BCM (Broadcom) pin numbering, not physical pin numbers",
+    "button_wiring": "Button should connect GPIO pin to GND (internal pull-up used)",
+    "led_wiring": "LED cathode to GND, anode to GPIO pin through appropriate resistor",
+    "common_pins": "Avoid GPIO 2,3 (I2C), GPIO 14,15 (UART), GPIO 8,9,10,11 (SPI)"
+  }
+} 
