@@ -1,16 +1,34 @@
 # UniFi Protect Camera Privacy Zone Manager
 
-A Python application that allows you to toggle privacy zones for UniFi Protect cameras. This tool provides both command-line and interactive interfaces for managing camera privacy settings.
+A mostly vibe coded but human read Python application that allows you to toggle privacy zones for UniFi Protect cameras. This comprehensive tool provides **command-line**, **interactive**, and **Raspberry Pi GPIO** capabilities built-in for managing camera privacy settings through multiple interfaces.
 
 ## Features
 
+### Core Privacy Management
 - 🔒 Toggle privacy zones on/off for UniFi Protect cameras
 - 💡 **LED Control**: Turn camera LED off/on for visual privacy indication
+- 🌙 **IR LED Control**: Turn IR LEDs off/on for enhanced privacy
 - 📋 List all cameras with their current privacy and LED status
-- 🖥️ Interactive mode for easy camera management
-- ⚡ Command-line interface for automation and scripting
+
+### Multiple Interface Options
+- 🖥️ **Interactive mode** for easy camera management
+- ⚡ **Command-line interface** for automation and scripting
+- 🔘 **Raspberry Pi GPIO** physical button control
+
+### Raspberry Pi GPIO Features
+- 🔴 **Physical Button Control**: Toggle privacy with hardware buttons
+- 📍 **Multi-Camera Support**: Individual GPIO pins per camera via JSON config
+- ⏰ **Auto-Disable Timeout**: Configurable automatic privacy disable (default 60 minutes)
+- 💡 **LED Status Indicators**: Visual feedback with GPIO LEDs
+- 🔄 **System Service Integration**: Runs automatically on boot via systemd
+- 📊 **State Persistence**: Maintains privacy state across reboots
+- ⚙️ **Flexible Configuration**: JSON-based camera and GPIO pin mapping
+
+### General Features
 - 🎨 Colorized output for better visibility
 - 🔧 Flexible configuration via environment variables or CLI arguments
+- 🐳 Docker support for containerized deployment
+- 🧪 Hardware testing utilities included
 
 ## Requirements
 
@@ -24,8 +42,8 @@ A Python application that allows you to toggle privacy zones for UniFi Protect c
 
 1. **Clone or download this repository:**
    ```bash
-   git clone <repository-url>
-   cd unifi_camera_management
+   git clone https://github.com/ShabbyDog/unifi_camera_privacy.git
+   cd unifi_camera_privacy
    ```
 
 2. **Install Python dependencies:**

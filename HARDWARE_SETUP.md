@@ -140,11 +140,11 @@ For a permanent installation, consider creating a simple PCB with:
 
 ```bash
 # Copy files to Raspberry Pi
-scp -r unifi_camera_management/ pi@your-pi-ip:/home/pi/
+scp -r unifi_camera_privacy/ pi@your-pi-ip:/home/pi/
 
 # SSH to Pi and run setup
 ssh pi@your-pi-ip
-cd /home/pi/unifi_camera_management
+cd /home/pi/unifi_camera_privacy
 chmod +x setup_rpi.sh
 ./setup_rpi.sh
 ```
