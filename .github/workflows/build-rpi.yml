@@ -1,0 +1,35 @@
+name: Build for Raspberry Pi
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-rpi:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up QEMU for ARM emulation
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build for Raspberry Pi
+      run: |
+        docker buildx build \
+          --platform linux/arm/v7 \
+          --output type=local,dest=./dist-rpi \
+          -f Dockerfile.rpi .
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: unifi-camera-manager-rpi
+        path: dist-rpi/unifi-camera-manager 

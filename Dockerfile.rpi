@@ -1,0 +1,28 @@
+# Dockerfile for Raspberry Pi (ARM32v7)
+FROM arm32v7/python:3.10-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pyinstaller
+
+# Copy application code
+COPY . .
+
+# Build the executable
+RUN pyinstaller --onefile --name unifi-camera-manager unifi_camera_privacy.py
+
+# Create output directory
+RUN mkdir -p /output
+RUN cp dist/unifi-camera-manager /output/
+
+# Command to copy the executable out
+CMD ["cp", "/output/unifi-camera-manager", "/host-output/"] 
